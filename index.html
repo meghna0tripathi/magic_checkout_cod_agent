@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>COD Agent for Magic Checkout · Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=TASA+Orbiter:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:hsl(0 0% 97%);
+  --surface:#fff;
+  --surface-2:hsl(0 0% 97%);
+  --border:hsl(204 8% 88%);
+  --border-strong:hsl(203 8% 80%);
+  --text:hsl(0 0% 2%);
+  --text-subtle:hsl(200 10% 18%);
+  --text-muted:hsl(204 9% 42%);
+  --primary:hsl(218 89% 51%);
+  --primary-strong:hsl(218 87% 43%);
+  --primary-subtle:hsla(218,89%,51%,.08);
+  --primary-muted:hsla(218,89%,51%,.18);
+  --pos:hsl(150 100% 28%);
+  --pos-subtle:hsla(150,100%,28%,.09);
+  --neg:hsl(4 85% 44%);
+  --neg-subtle:hsla(4,85%,44%,.08);
+  --notice:hsl(25 100% 39%);
+  --notice-subtle:hsla(25,100%,44%,.1);
+  --chat-bg:hsl(36 30% 94%);
+  --bubble-in:#fff;
+  --bubble-out:hsl(118 60% 89%);
+  --shadow:0 1px 2px hsla(210,20%,10%,.06),0 4px 16px hsla(210,20%,10%,.05);
+  --shadow-lg:0 12px 40px hsla(210,30%,10%,.16);
+  --font-text:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --font-head:'TASA Orbiter','Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:hsl(212 18% 8%);--surface:hsl(212 16% 12%);--surface-2:hsl(212 14% 15%);
+    --border:hsl(212 10% 22%);--border-strong:hsl(212 10% 30%);
+    --text:hsl(0 0% 97%);--text-subtle:hsl(210 12% 84%);--text-muted:hsl(210 8% 64%);
+    --primary:hsl(218 100% 66%);--primary-strong:hsl(218 100% 74%);
+    --primary-subtle:hsla(218,100%,66%,.12);--primary-muted:hsla(218,100%,66%,.24);
+    --pos:hsl(150 55% 52%);--pos-subtle:hsla(150,55%,52%,.13);
+    --neg:hsl(5 80% 64%);--neg-subtle:hsla(5,80%,64%,.13);
+    --notice:hsl(28 100% 62%);--notice-subtle:hsla(28,100%,62%,.13);
+    --chat-bg:hsl(212 16% 10%);--bubble-in:hsl(212 14% 18%);--bubble-out:hsl(160 40% 22%);
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 16px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:hsl(212 18% 8%);--surface:hsl(212 16% 12%);--surface-2:hsl(212 14% 15%);
+  --border:hsl(212 10% 22%);--border-strong:hsl(212 10% 30%);
+  --text:hsl(0 0% 97%);--text-subtle:hsl(210 12% 84%);--text-muted:hsl(210 8% 64%);
+  --primary:hsl(218 100% 66%);--primary-strong:hsl(218 100% 74%);
+  --primary-subtle:hsla(218,100%,66%,.12);--primary-muted:hsla(218,100%,66%,.24);
+  --pos:hsl(150 55% 52%);--pos-subtle:hsla(150,55%,52%,.13);
+  --neg:hsl(5 80% 64%);--neg-subtle:hsla(5,80%,64%,.13);
+  --notice:hsl(28 100% 62%);--notice-subtle:hsla(28,100%,62%,.13);
+  --chat-bg:hsl(212 16% 10%);--bubble-in:hsl(212 14% 18%);--bubble-out:hsl(160 40% 22%);
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 16px rgba(0,0,0,.3);
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;height:100%;background:var(--bg);color:var(--text);font:400 14px/20px var(--font-text);-webkit-font-smoothing:antialiased}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:6px}
+img,svg{max-width:100%}
+
+/* ---------- shell ---------- */
+.app{display:grid;grid-template-columns:232px 1fr;height:100%;overflow:hidden}
+.side{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:10px;padding:18px 18px 14px}
+.brand-mark{width:26px;height:26px;border-radius:7px;background:var(--primary);display:grid;place-items:center}
+.brand-mark span{width:10px;height:10px;border:2.5px solid #fff;border-radius:2px;transform:rotate(45deg)}
+.brand b{font:600 15px/20px var(--font-head);letter-spacing:-.01em}
+.merchant{margin:0 12px 10px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;display:flex;gap:10px;align-items:center}
+.avatar{width:30px;height:30px;border-radius:50%;background:hsl(340 70% 92%);color:hsl(340 60% 36%);display:grid;place-items:center;font-weight:600;font-size:12px;flex:none}
+.merchant small{display:block;color:var(--text-muted);font-size:12px;line-height:16px}
+.nav{padding:6px 10px 20px}
+.nav-group{margin-top:14px;color:var(--text-muted);font-size:12px;font-weight:500;padding:0 10px 6px}
+.nav a{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;color:var(--text-subtle);text-decoration:none;font-weight:500}
+.nav a:hover{background:var(--surface-2)}
+.nav a.sub{padding-left:38px;font-weight:400}
+.nav a.active{background:var(--primary-subtle);color:var(--primary)}
+.nav svg{width:18px;height:18px;flex:none}
+.pill-new{margin-left:auto;font-size:11px;font-weight:600;color:var(--primary);background:var(--primary-subtle);border-radius:999px;padding:1px 8px}
+
+.main{display:flex;flex-direction:column;min-width:0;min-height:0;height:100%}
+.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;padding:12px 24px;flex-wrap:wrap}
+.crumbs{color:var(--text-muted);font-size:13px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.crumbs b{color:var(--text);font-weight:500}
+.steps{margin-left:auto;display:flex;gap:4px;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:3px;overflow-x:auto;max-width:100%}
+.steps button{border:0;background:transparent;padding:6px 12px;border-radius:7px;font-size:13px;font-weight:500;color:var(--text-muted);white-space:nowrap;display:flex;gap:7px;align-items:center}
+.steps button i{font-style:normal;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-size:11px;border:1px solid var(--border-strong)}
+.steps button.on{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
+.steps button.on i{background:var(--primary);border-color:var(--primary);color:#fff}
+.scroll{overflow-y:auto;flex:1;min-height:0}
+.page{max-width:1120px;margin:0 auto;padding:28px 24px 110px}
+.screen{display:none;animation:in .28s ease}
+.screen.on{display:block}
+@keyframes in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+h1{font:600 24px/32px var(--font-head);letter-spacing:-.015em;margin:0}
+h2{font:600 16px/24px var(--font-text);margin:0}
+.lede{color:var(--text-muted);margin:6px 0 0;max-width:68ch}
+.head{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+.head .grow{flex:1;min-width:260px}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;border-radius:999px;padding:2px 10px;line-height:20px;white-space:nowrap}
+.b-primary{background:var(--primary-subtle);color:var(--primary)}
+.b-pos{background:var(--pos-subtle);color:var(--pos)}
+.b-neg{background:var(--neg-subtle);color:var(--neg)}
+.b-notice{background:var(--notice-subtle);color:var(--notice)}
+.b-gray{background:var(--surface-2);color:var(--text-muted);border:1px solid var(--border)}
+.dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+.live .dot{animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow)}
+.card-h{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.card-h p{margin:2px 0 0;color:var(--text-muted);font-size:13px}
+.card-b{padding:18px 20px}
+.stack{display:grid;gap:16px}
+.muted{color:var(--text-muted)}
+.small{font-size:12px;line-height:16px}
+
+.btn{border:1px solid transparent;border-radius:8px;padding:9px 16px;font-weight:600;font-size:14px;line-height:20px;display:inline-flex;align-items:center;gap:8px;transition:background .15s,border-color .15s}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-strong)}
+.btn-secondary{background:var(--surface);border-color:var(--border-strong);color:var(--text)}
+.btn-secondary:hover{background:var(--surface-2)}
+.btn-ghost{background:transparent;color:var(--primary);padding:6px 8px}
+.btn-danger{background:var(--surface);border-color:var(--neg);color:var(--neg)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* switch */
+.switch{position:relative;width:44px;height:24px;flex:none}
+.switch input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer;z-index:1}
+.switch span{position:absolute;inset:0;border-radius:999px;background:var(--border-strong);transition:background .2s}
+.switch span::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s}
+.switch input:checked+span{background:var(--primary)}
+.switch input:checked+span::after{transform:translateX(20px)}
+.switch input:focus-visible+span{outline:2px solid var(--primary);outline-offset:2px}
+.switch.sm{width:36px;height:20px}
+.switch.sm span::after{width:14px;height:14px}
+.switch.sm input:checked+span::after{transform:translateX(16px)}
+
+/* ---------- screen 1 ---------- */
+.hero-toggle{display:flex;gap:18px;align-items:center;padding:22px 24px}
+.hero-toggle .ico{width:44px;height:44px;border-radius:10px;background:var(--primary-subtle);color:var(--primary);display:grid;place-items:center;flex:none}
+.hero-toggle h2{font:600 18px/26px var(--font-head)}
+.hero-toggle p{margin:2px 0 0;color:var(--text-muted)}
+.reveal{display:grid;gap:16px;margin-top:16px;transition:opacity .3s}
+.reveal[hidden]{display:none}
+.lever{display:grid;grid-template-columns:1fr auto auto;gap:16px;align-items:center;padding:13px 20px;border-top:1px solid var(--border)}
+.lever:first-child{border-top:0}
+.lever b{font-weight:500}
+.lever .cur{color:var(--text-muted);font-size:13px}
+.two{display:grid;grid-template-columns:1.15fr 1fr;gap:16px;align-items:start}
+textarea{width:100%;min-height:146px;resize:vertical;border:1px solid var(--border-strong);border-radius:8px;padding:12px;background:var(--surface);line-height:22px}
+textarea:focus{outline:2px solid var(--primary-muted);border-color:var(--primary)}
+.rules{margin-top:14px;display:grid;gap:8px}
+.rule{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface-2);animation:in .3s ease both}
+.rule svg{color:var(--pos);flex:none;margin-top:2px}
+.rule .val{margin-left:auto;font-weight:600;white-space:nowrap}
+.warn{display:flex;gap:10px;padding:10px 12px;border-radius:8px;background:var(--notice-subtle);color:var(--text-subtle);border:1px solid hsla(25,100%,44%,.25);animation:in .3s ease both}
+.warn svg{color:var(--notice);flex:none;margin-top:2px}
+.shimmer{height:38px;border-radius:8px;background:linear-gradient(90deg,var(--surface-2),var(--border),var(--surface-2));background-size:200% 100%;animation:sh 1s linear infinite}
+@keyframes sh{to{background-position:-200% 0}}
+.seg{display:flex;border:1px solid var(--border-strong);border-radius:8px;overflow:hidden}
+.seg button{flex:1;border:0;background:var(--surface);padding:10px 12px;text-align:left;border-left:1px solid var(--border-strong)}
+.seg button:first-child{border-left:0}
+.seg button b{display:block;font-weight:600;font-size:13px}
+.seg button span{display:block;color:var(--text-muted);font-size:12px;line-height:16px;margin-top:2px}
+.seg button.on{background:var(--primary-subtle);box-shadow:inset 0 0 0 1.5px var(--primary)}
+.kv{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--border)}
+.kv:first-of-type{border-top:0}
+.kv svg{color:var(--text-muted);flex:none;margin-top:2px}
+.foot-cta{display:flex;justify-content:flex-end;gap:10px;margin-top:4px}
+
+/* ---------- screen 2 ---------- */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.stat{padding:14px 16px}
+.stat .lab{color:var(--text-muted);font-size:13px}
+.stat .num{font:600 22px/30px var(--font-head);margin-top:4px;letter-spacing:-.01em}
+.stat .sub{color:var(--text-muted);font-size:12px;line-height:16px}
+.bar{height:6px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border);margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--primary);border-radius:999px}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:820px}
+th{text-align:left;font-size:12px;font-weight:500;color:var(--text-muted);padding:10px 16px;background:var(--surface-2);border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:12px 16px;border-bottom:1px solid var(--border);vertical-align:middle;white-space:nowrap}
+tbody tr{cursor:pointer;transition:background .15s}
+tbody tr:hover{background:var(--primary-subtle)}
+tbody tr.sel{background:var(--primary-subtle);box-shadow:inset 3px 0 0 var(--primary)}
+tbody tr.fresh{animation:fresh 2.4s ease}
+@keyframes fresh{0%{background:var(--primary-muted)}100%{background:transparent}}
+td .id{font-weight:500}
+td .s2{display:block;color:var(--text-muted);font-size:12px;line-height:16px}
+.risk{display:inline-flex;align-items:center;gap:8px}
+.risk .meter{width:44px;height:6px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border);overflow:hidden}
+.risk .meter i{display:block;height:100%}
+.gain{font-weight:600;color:var(--pos)}
+.gain.zero{color:var(--text-muted);font-weight:500}
+
+/* drawer */
+.scrim{position:fixed;inset:0;background:hsla(210,30%,10%,.28);opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}
+.scrim.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:min(460px,100%);background:var(--surface);border-left:1px solid var(--border);box-shadow:var(--shadow-lg);transform:translateX(102%);transition:transform .28s cubic-bezier(.2,.8,.2,1);z-index:21;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.drawer.on{transform:none}
+.dr-h{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start}
+.dr-h h2{font:600 18px/26px var(--font-head)}
+.dr-b{padding:18px 20px;overflow-y:auto;flex:1;display:grid;gap:20px;align-content:start}
+.x{margin-left:auto;border:0;background:transparent;width:32px;height:32px;border-radius:8px;display:grid;place-items:center;color:var(--text-muted)}
+.x:hover{background:var(--surface-2)}
+.sig{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:13px}
+.sig span{color:var(--text-muted)}
+.sig b{font-weight:500;text-align:right}
+.opt{display:grid;grid-template-columns:132px 1fr 72px;gap:10px;align-items:center;font-size:13px;padding:6px 8px;border-radius:8px}
+.opt .track{height:8px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border);overflow:hidden}
+.opt .track i{display:block;height:100%;background:var(--border-strong);border-radius:999px;transition:width .5s ease}
+.opt.best{background:var(--primary-subtle)}
+.opt.best .track i{background:var(--primary)}
+.opt.best .name{font-weight:600;color:var(--primary)}
+.opt.na{opacity:.55}
+.opt .amt{text-align:right;font-weight:600}
+.why{padding:14px;border-radius:10px;background:var(--surface-2);border:1px solid var(--border);line-height:21px}
+.why b{display:block;margin-bottom:4px}
+.reply{border-radius:10px;border:1px solid var(--border);overflow:hidden}
+.reply .msg{background:var(--chat-bg);padding:12px}
+.reply .msg div{background:var(--bubble-in);border-radius:8px;padding:8px 10px;max-width:90%;font-size:13px;box-shadow:0 1px 1px rgba(0,0,0,.06)}
+.reply .parsed{padding:12px;display:grid;gap:6px;font-size:13px}
+select{border:1px solid var(--border-strong);border-radius:8px;padding:8px 10px;background:var(--surface);width:100%}
+.row{display:flex;gap:10px;align-items:center}
+.sectlabel{font-weight:600;margin-bottom:8px}
+
+/* ---------- screen 3 ---------- */
+.ray{display:grid;grid-template-columns:380px 1fr;gap:28px;align-items:start}
+.phone{width:100%;max-width:370px;height:660px;border-radius:40px;background:hsl(210 10% 12%);padding:12px;box-shadow:var(--shadow-lg);margin:0 auto}
+.screenp{height:100%;border-radius:30px;overflow:hidden;display:flex;flex-direction:column;background:var(--chat-bg)}
+.chat-h{background:hsl(170 60% 22%);color:#fff;padding:14px 14px 12px;display:flex;align-items:center;gap:10px}
+.chat-h .av{width:34px;height:34px;border-radius:50%;background:#fff;color:var(--primary);display:grid;place-items:center;font:700 14px var(--font-head)}
+.chat-h small{display:block;opacity:.8;font-size:12px;line-height:15px}
+.chat{flex:1;overflow-y:auto;padding:14px 10px;display:flex;flex-direction:column;gap:8px}
+.daytag{align-self:center;font-size:11px;background:var(--bubble-in);color:var(--text-muted);padding:3px 10px;border-radius:7px;box-shadow:0 1px 1px rgba(0,0,0,.06)}
+.bub{max-width:84%;padding:8px 10px 6px;border-radius:10px;font-size:13.5px;line-height:19px;box-shadow:0 1px 1px rgba(0,0,0,.08);animation:pop .25s ease both;position:relative}
+@keyframes pop{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
+.bub.in{align-self:flex-start;background:var(--bubble-in);border-top-left-radius:2px}
+.bub.out{align-self:flex-end;background:var(--bubble-out);border-top-right-radius:2px}
+.bub .t{display:block;text-align:right;font-size:10.5px;color:var(--text-muted);margin-top:2px}
+.bub .digest{display:grid;grid-template-columns:1fr auto;gap:3px 14px;margin:6px 0 4px;font-size:13px}
+.bub .digest span{color:var(--text-muted)}
+.bub .digest b{text-align:right;font-weight:600}
+.qr{display:grid;gap:1px;margin:8px -10px -6px;border-top:1px solid var(--border)}
+.qr button{border:0;background:transparent;padding:9px;color:hsl(200 80% 38%);font-weight:600;font-size:13px}
+:root[data-theme="dark"] .qr button{color:hsl(190 70% 60%)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .qr button{color:hsl(190 70% 60%)}}
+.qr button+button{border-top:1px solid var(--border)}
+.qr button:disabled{color:var(--text-muted);cursor:default}
+.typing{align-self:flex-start;background:var(--bubble-in);border-radius:10px;padding:10px 12px;display:flex;gap:4px}
+.typing i{width:6px;height:6px;border-radius:50%;background:var(--text-muted);animation:ty 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes ty{0%,100%{opacity:.3;transform:none}50%{opacity:1;transform:translateY(-2px)}}
+.chips{display:flex;gap:6px;padding:8px 10px;overflow-x:auto;background:var(--chat-bg)}
+.chips button{border:1px solid var(--border-strong);background:var(--bubble-in);border-radius:999px;padding:6px 12px;font-size:12.5px;white-space:nowrap}
+.composer{display:flex;gap:8px;padding:8px 10px 14px;background:var(--chat-bg)}
+.composer div{flex:1;background:var(--bubble-in);border-radius:999px;padding:9px 14px;color:var(--text-muted);font-size:13px}
+.composer span{width:38px;height:38px;border-radius:50%;background:hsl(170 60% 30%);display:grid;place-items:center;color:#fff;flex:none}
+.verify{display:flex;gap:10px;align-items:center;padding:8px;border-radius:8px;background:var(--surface-2);margin-top:6px;border:1px solid var(--border)}
+.behind h2{font:600 18px/26px var(--font-head)}
+.tl{list-style:none;margin:18px 0 0;padding:0;display:grid;gap:0}
+.tl li{display:grid;grid-template-columns:32px 1fr;gap:12px;padding-bottom:20px;position:relative;opacity:.38;transition:opacity .4s}
+.tl li.lit{opacity:1}
+.tl li::before{content:"";position:absolute;left:15px;top:30px;bottom:0;width:2px;background:var(--border)}
+.tl li:last-child::before{display:none}
+.tl .n{width:32px;height:32px;border-radius:50%;border:1.5px solid var(--border-strong);display:grid;place-items:center;font-weight:600;font-size:13px;background:var(--surface)}
+.tl li.lit .n{background:var(--primary);border-color:var(--primary);color:#fff}
+.tl li.done .n{background:var(--pos);border-color:var(--pos)}
+.tl p{margin:4px 0 0;color:var(--text-muted);font-size:13px;line-height:19px}
+.tl b{font-weight:600}
+.status-card{margin-top:4px;padding:14px 16px;display:flex;gap:12px;align-items:center}
+
+/* ---------- screen 4 ---------- */
+.res-top{display:grid;grid-template-columns:1.05fr 1fr;gap:16px;margin-bottom:16px}
+.big{padding:22px 24px}
+.big .lab{color:var(--text-muted)}
+.big .fig{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-top:8px}
+.big .fig strong{font:600 44px/52px var(--font-head);letter-spacing:-.03em}
+.big .vs{color:var(--text-muted)}
+.big .delta{margin-top:12px}
+.cmp{width:100%;border-collapse:collapse;min-width:0}
+.cmp th,.cmp td{padding:11px 0;border-bottom:1px solid var(--border);background:transparent;white-space:normal}
+.cmp th{font-size:12px}
+.cmp td:not(:first-child),.cmp th:not(:first-child){text-align:right}
+.cmp tr:last-child td{border-bottom:0}
+.cmp tbody tr{cursor:default}
+.cmp tbody tr:hover{background:transparent}
+.chart-legend{display:flex;gap:16px;font-size:12px;color:var(--text-muted)}
+.chart-legend span{display:inline-flex;align-items:center;gap:6px}
+.chart-legend i{width:14px;height:3px;border-radius:2px;display:inline-block}
+.learn{display:grid;gap:0}
+.learn .item{display:grid;grid-template-columns:1fr auto;gap:6px 14px;padding:14px 20px;border-top:1px solid var(--border)}
+.learn .item:first-child{border-top:0}
+.learn .item p{margin:2px 0 0;color:var(--text-muted);font-size:13px}
+.res-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:16px;align-items:start}
+.log{font-size:13px;display:grid;gap:10px}
+.log div{display:grid;grid-template-columns:62px 1fr;gap:10px}
+.log time{color:var(--text-muted);font-variant-numeric:tabular-nums}
+
+/* demo nav + toast */
+.demo{position:fixed;right:20px;bottom:calc(18px + env(safe-area-inset-bottom,0px));display:flex;gap:8px;z-index:15}
+.demo .btn{box-shadow:var(--shadow-lg)}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:hsl(210 15% 14%);color:#fff;padding:11px 16px;border-radius:10px;font-weight:500;display:flex;gap:10px;align-items:center;opacity:0;transition:all .25s;z-index:30;box-shadow:var(--shadow-lg);max-width:calc(100% - 32px)}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.toast svg{color:hsl(150 60% 60%);flex:none}
+.foot-note{margin-top:28px;color:var(--text-muted);font-size:12px;line-height:18px;max-width:80ch}
+.paused-banner{display:none;margin-bottom:16px;padding:12px 16px;border-radius:10px;background:var(--notice-subtle);border:1px solid hsla(25,100%,44%,.25);align-items:center;gap:12px}
+body.paused .paused-banner{display:flex}
+
+/* responsive */
+@media (max-width:1040px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .two,.res-top,.res-grid{grid-template-columns:1fr}
+  .ray{grid-template-columns:1fr}
+}
+@media (max-width:860px){
+  .app{grid-template-columns:1fr}
+  .side{display:none}
+  .page{padding:20px 16px 110px}
+  .top{padding:10px 16px}
+  .steps{margin-left:0;width:100%}
+  .lever{grid-template-columns:1fr auto}
+  .lever .cur{grid-column:1/-1;grid-row:2}
+  .phone{height:640px}
+}
+@media (max-width:520px){
+  .stats{grid-template-columns:1fr}
+  .opt{grid-template-columns:110px 1fr 64px}
+  .big .fig strong{font-size:36px;line-height:44px}
+  .steps button span{display:none}
+}
+
+/* ===== Magic Checkout visual language ===== */
+:root{--primary:hsl(226 82% 56%);--primary-strong:hsl(226 80% 47%);--primary-subtle:hsla(226,82%,56%,.09);--primary-muted:hsla(226,82%,56%,.2);
+  --sky:linear-gradient(180deg,#6aa6c7 0%,#86bad5 42%,#bcdbe9 100%);--glow:0 12px 36px rgba(18,62,92,.16)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--sky:linear-gradient(180deg,#14324a 0%,#1b4560 50%,#285a75 100%);--glow:0 12px 36px rgba(0,0,0,.4)}}
+:root[data-theme="dark"]{--sky:linear-gradient(180deg,#14324a 0%,#1b4560 50%,#285a75 100%);--glow:0 12px 36px rgba(0,0,0,.4)}
+body{background:var(--sky);background-attachment:fixed}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(38% 22% at 92% 18%,rgba(255,255,255,.55),transparent 70%),radial-gradient(30% 18% at 4% 30%,rgba(255,255,255,.4),transparent 70%),radial-gradient(45% 20% at 60% 104%,rgba(255,255,255,.5),transparent 70%)}
+.app{grid-template-columns:1fr;position:relative;z-index:1}
+.side{display:none}
+.main{background:transparent}
+.top{margin:12px 16px 0;border:0;border-radius:16px;box-shadow:var(--glow);padding:0 12px 0 22px;min-height:64px;gap:20px}
+.crumbs{font-size:14px}
+.steps{background:transparent;border:0;padding:0;gap:0;border-radius:0}
+.steps button{border-radius:0;padding:21px 20px 18px;font-size:15px;font-weight:500;color:var(--text-subtle);border-bottom:3px solid transparent}
+.steps button+button{border-left:1px solid var(--border)}
+.steps button.on{background:transparent;box-shadow:none;color:var(--text);border-bottom-color:var(--primary)}
+.head h1{color:#fff;font-size:46px;line-height:52px;font-weight:600;letter-spacing:-.025em;text-shadow:0 2px 18px rgba(20,60,90,.18)}
+.head .lede{color:rgba(255,255,255,.94);font-size:18px;line-height:27px;max-width:62ch}
+.head .badge{background:#fff;box-shadow:var(--glow)}
+.head{margin-bottom:26px}
+.page{padding-top:40px}
+.card{border:0;border-radius:20px;box-shadow:var(--glow)}
+.card-h{border-bottom-color:var(--border)}
+.foot-note{color:rgba(255,255,255,.92)}
+.behind{background:var(--surface);border-radius:20px;padding:24px;box-shadow:var(--glow)}
+.paused-banner{background:var(--surface);box-shadow:var(--glow)}
+#activateBtn{background:#000;color:#fff;border-radius:10px;padding:12px 30px}
+#activateBtn:disabled{background:#000}
+.demo .btn{border-radius:6px;padding:11px 22px;font-size:15px}
+.demo .btn-secondary{border:2px solid var(--primary);color:var(--primary);background:var(--surface)}
+.phone{background:var(--surface);padding:10px;box-shadow:var(--glow)}
+.badge.b-primary{background:hsla(226,82%,56%,.1)}
+.stat .num{font-weight:600}
+@media (max-width:860px){.head h1{font-size:34px;line-height:40px}.top{margin:8px 8px 0}.steps button{padding:14px 12px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side" aria-label="Dashboard navigation">
+    <div class="brand"><div class="brand-mark" aria-hidden="true"><span></span></div><b>Razorpay</b></div>
+    <div class="merchant"><div class="avatar">RJ</div><div><b>Rangreza Jaipur</b><small>Neha Sharma</small></div></div>
+    <nav class="nav">
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/></svg>Home</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h10"/></svg>Transactions</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v18M5 8h11a3 3 0 010 6H8a3 3 0 000 6h11"/></svg>Settlements</a>
+      <div class="nav-group">Payment products</div>
+      <a href="#" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4l3 6-3 6M11 4l3 6-3 6" /><path d="M17 8l2 2-2 2"/></svg>Magic Checkout</a>
+      <a href="#" class="sub">Setup &amp; Settings</a>
+      <a href="#" class="sub active" style="font-weight:600">COD Agent <span class="pill-new">New</span></a>
+      <a href="#" class="sub">COD Order Conversion</a>
+      <a href="#" class="sub">Order Analytics</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 13a5 5 0 007 0l3-3a5 5 0 00-7-7l-1 1"/><path d="M14 11a5 5 0 00-7 0l-3 3a5 5 0 007 7l1-1"/></svg>Payment Links</a>
+      <div class="nav-group">AI</div>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>Agent Studio</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 18l1.5-4A8 8 0 1112 20a8 8 0 01-3.5-.8z"/></svg>RAY</a>
+    </nav>
+  </aside>
+
+  <div class="main">
+    <header class="top">
+      <div class="crumbs">Magic Checkout <span aria-hidden="true">/</span> COD Setup <span aria-hidden="true">/</span> <b>COD Agent</b></div>
+      <div class="steps" role="tablist" aria-label="Prototype screens">
+        <button role="tab" data-go="0" class="on"><i>1</i><span>Set up</span></button>
+        <button role="tab" data-go="1"><i>2</i><span>Order decisions</span></button>
+        <button role="tab" data-go="2"><i>3</i><span>RAY on WhatsApp</span></button>
+        <button role="tab" data-go="3"><i>4</i><span>Results</span></button>
+      </div>
+    </header>
+
+    <div class="scroll" id="scroll">
+    <div class="page">
+      <div class="paused-banner"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--notice)" stroke-width="2"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg><div><b>Agent paused.</b> <span class="muted">Every COD order now follows your previous settings.</span></div><button class="btn btn-secondary" style="margin-left:auto" data-resume>Resume agent</button></div>
+
+      <!-- ===================== SCREEN 1: SET UP ===================== -->
+      <section class="screen on" data-screen="0" aria-label="Set up">
+        <div class="head">
+          <div class="grow">
+            <h1>COD Agent</h1>
+            <p class="lede">Choose the right COD option for every order, using the settings you already have. The agent picks between allowing COD, a WhatsApp check, a prepaid discount, partial COD or prepaid only, and learns from what gets delivered.</p>
+          </div>
+        </div>
+
+        <div class="card hero-toggle">
+          <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg></div>
+          <div style="flex:1">
+            <h2>Let the agent manage COD</h2>
+            <p id="toggleSub">Off. Your current settings apply the same way to every order.</p>
+          </div>
+          <label class="switch"><input type="checkbox" id="agentToggle" aria-label="Let the agent manage COD"><span></span></label>
+        </div>
+
+        <div class="reveal" id="reveal" hidden>
+          <div class="card">
+            <div class="card-h"><div style="flex:1"><h2>Starting point: your current settings</h2><p>On day one the agent behaves exactly like this. Then it adjusts order by order.</p></div><span class="badge b-pos"><span class="dot"></span>Imported</span></div>
+            <div>
+              <div class="lever"><div><b>COD Intelligence</b><div class="cur">Block COD for high-risk buyers</div></div><span class="small muted">Agent can use</span><label class="switch sm"><input type="checkbox" checked aria-label="Agent can use COD Intelligence"><span></span></label></div>
+              <div class="lever"><div><b>Partial COD</b><div class="cur">₹99 advance for high-risk buyers</div></div><span class="small muted">Agent can use</span><label class="switch sm"><input type="checkbox" checked aria-label="Agent can use partial COD"><span></span></label></div>
+              <div class="lever"><div><b>Convert COD to prepaid</b><div class="cur">₹50 flat discount, WhatsApp link to every medium-risk order</div></div><span class="small muted">Agent can use</span><label class="switch sm"><input type="checkbox" checked aria-label="Agent can use convert to prepaid"><span></span></label></div>
+              <div class="lever"><div><b>Order confirmation on WhatsApp</b><div class="cur">Off today</div></div><span class="small muted">Agent can use</span><label class="switch sm"><input type="checkbox" checked aria-label="Agent can use WhatsApp confirmation"><span></span></label></div>
+              <div class="lever"><div><b>COD fee</b><div class="cur">₹49 on orders between ₹400 and ₹2,000</div></div><span class="small muted">Keep as is</span><label class="switch sm"><input type="checkbox" aria-label="Agent can use COD fee"><span></span></label></div>
+            </div>
+          </div>
+
+          <div class="two">
+            <div class="card">
+              <div class="card-h"><div><h2>Your rules</h2><p>Write them the way you would tell a team member.</p></div></div>
+              <div class="card-b">
+                <label for="rulesText" class="small muted" style="display:block;margin-bottom:6px">Rules for the agent</label>
+                <textarea id="rulesText">Never give more than ₹40 off on any order. Spend at most ₹3,000 a day on discounts. Never stop COD for customers who already have 2 or more delivered orders. Don't send more than one WhatsApp message per order. If a customer doesn't confirm in 12 hours, hold the parcel.</textarea>
+                <div style="display:flex;justify-content:flex-end;margin-top:10px"><button class="btn btn-secondary" id="parseBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/></svg>Turn into rules</button></div>
+                <div class="rules" id="rules" aria-live="polite"></div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-h"><div><h2>How the agent acts</h2><p>You stay in control of anything that changes your policy.</p></div></div>
+              <div class="card-b">
+                <div class="seg" role="radiogroup" aria-label="Agent mode">
+                  <button class="on" data-mode="approve" role="radio" aria-checked="true"><b>Ask me first</b><span>Order decisions run on their own. Policy changes wait for your approval.</span></button>
+                  <button data-mode="auto" role="radio" aria-checked="false"><b>Act on its own</b><span>Policy changes apply right away. You get a summary.</span></button>
+                </div>
+                <div style="margin-top:14px">
+                  <div class="kv"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l6 3"/></svg><div><b>10% of COD orders stay on your current settings</b><div class="small muted" style="margin-top:2px">This comparison group shows exactly what the agent adds.</div></div></div>
+                  <div class="kv"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg><div><b>Pauses itself if checkout conversion drops</b><div class="small muted" style="margin-top:2px">If conversion falls 2 points below the comparison group, every order goes back to your current settings.</div></div></div>
+                  <div class="kv"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 11V8a5 5 0 0110 0v3"/><rect x="5" y="11" width="14" height="10" rx="2"/></svg><div><b>Sees only what it needs</b><div class="small muted" style="margin-top:2px">Order, cart, pincode and Razorpay's return-risk score. No access to payouts or refunds.</div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="foot-cta">
+            <button class="btn btn-primary" id="activateBtn" disabled>Activate agent</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== SCREEN 2: DECISIONS ===================== -->
+      <section class="screen" data-screen="1" aria-label="Order decisions">
+        <div class="head">
+          <div class="grow">
+            <div class="row" style="gap:12px"><h1>Today's COD orders</h1><span class="badge b-pos live"><span class="dot"></span>Live</span></div>
+            <p class="lede">Every COD order gets its own decision. Select an order to see the options the agent compared and why it chose one.</p>
+          </div>
+        </div>
+
+        <div class="stats">
+          <div class="card stat"><div class="lab">COD orders today</div><div class="num" id="kOrders">104</div><div class="sub">9 in the comparison group</div></div>
+          <div class="card stat"><div class="lab">Moved to prepaid</div><div class="num">19 <span class="muted" style="font:500 14px var(--font-text)">of 31 offered</span></div><div class="sub">61% took the discount</div></div>
+          <div class="card stat"><div class="lab">Discounts spent</div><div class="num">₹570 <span class="muted" style="font:500 14px var(--font-text)">of ₹3,000</span></div><div class="bar"><i style="width:19%"></i></div></div>
+          <div class="card stat"><div class="lab">Returns avoided (estimated)</div><div class="num">21</div><div class="sub">About ₹4,200 in return costs</div></div>
+        </div>
+
+        <div class="card">
+          <div class="tablewrap">
+            <table>
+              <thead><tr><th>Order</th><th>Pincode</th><th>Cart value</th><th>Return risk</th><th>Agent's choice</th><th>Status</th><th>Gain over current settings</th></tr></thead>
+              <tbody id="orderRows"></tbody>
+            </table>
+          </div>
+        </div>
+        <p class="foot-note">Return risk comes from Razorpay's COD risk model (Vulcan), the same score Magic Checkout uses today. Expected gain compares the agent's choice with what your current settings would have done for the same order.</p>
+      </section>
+
+      <!-- ===================== SCREEN 3: RAY ===================== -->
+      <section class="screen" data-screen="2" aria-label="RAY on WhatsApp">
+        <div class="head">
+          <div class="grow">
+            <h1>Your morning update on WhatsApp</h1>
+            <p class="lede">RAY sends Neha one message a day: what the agent did, and any change to her policy that needs a yes.</p>
+          </div>
+          <button class="btn btn-secondary" id="replayChat"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.6L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>
+        </div>
+        <div class="ray">
+          <div class="phone" aria-label="WhatsApp conversation with RAY">
+            <div class="screenp">
+              <div class="chat-h"><div class="av">R</div><div><b>RAY</b><small>Razorpay account manager</small></div></div>
+              <div class="chat" id="chat" aria-live="polite"></div>
+              <div class="chips" id="chips"></div>
+              <div class="composer"><div>Message or voice note</div><span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></span></div>
+            </div>
+          </div>
+          <div class="behind">
+            <h2>What happens behind the message</h2>
+            <ol class="tl" id="tl">
+              <li data-step="1"><div class="n">1</div><div><b>The agent spots a change</b><p>Returns from pincode 302012 rose from 26% to 41% over 14 days, across 38 orders.</p></div></li>
+              <li data-step="2"><div class="n">2</div><div><b>It compares the options</b><p>Moving this pincode to partial COD (₹99) beats blocking COD. Estimated gain: ₹2,300 a week.</p></div></li>
+              <li data-step="3"><div class="n">3</div><div><b>It asks, because this changes policy</b><p>Neha chose "Ask me first", so the change waits for her reply.</p></div></li>
+              <li data-step="4"><div class="n">4</div><div><b>Neha approves, the change goes live</b><p>A secure tap confirms it is her. The update is applied and saved to the activity log.</p></div></li>
+            </ol>
+            <div class="card status-card"><span class="badge b-pos" id="agentStatus"><span class="dot"></span>Agent running</span><span class="small muted" id="agentStatusSub">Neha can reply "pause" at any time to switch it off.</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== SCREEN 4: RESULTS ===================== -->
+      <section class="screen" data-screen="3" aria-label="Results">
+        <div class="head">
+          <div class="grow">
+            <h1>Results after 4 weeks</h1>
+            <p class="lede">Orders handled by the agent compared with the 10% comparison group on your old settings. Delivery and return outcomes come from Razorpay's own order data.</p>
+          </div>
+          <span class="badge b-pos"><span class="dot"></span>Healthy, no auto-pause triggered</span>
+        </div>
+
+        <div class="res-top">
+          <div class="card big">
+            <div class="lab">Profit from delivered orders, per 100 orders</div>
+            <div class="fig"><strong>₹37,300</strong><span class="vs">vs ₹33,800 on old settings</span></div>
+            <div class="delta"><span class="badge b-pos">+₹3,500 per 100 orders, +10.4%</span></div>
+            <p class="small muted" style="margin:14px 0 0;line-height:18px">At Rangreza's 3,000 orders a month, that is about ₹1.05 lakh more profit every month, after discounts and messaging costs.</p>
+          </div>
+          <div class="card">
+            <div class="card-h"><h2>Agent vs old settings</h2></div>
+            <div class="card-b" style="padding-top:4px;padding-bottom:6px">
+              <table class="cmp">
+                <thead><tr><th>Measure</th><th>Agent</th><th>Old settings</th></tr></thead>
+                <tbody>
+                  <tr><td>COD return rate</td><td><b style="color:var(--pos)">21.4%</b></td><td>28.1%</td></tr>
+                  <tr><td>Orders paid upfront</td><td><b style="color:var(--pos)">49%</b></td><td>40%</td></tr>
+                  <tr><td>Discount spent per order</td><td><b style="color:var(--pos)">₹6.20</b></td><td>₹14.80</td></tr>
+                  <tr><td>Checkout conversion</td><td><b>3.9%</b></td><td>4.0%</td></tr>
+                </tbody>
+              </table>
+              <p class="small muted" style="margin:10px 0 8px">Checkout conversion is 0.1 points lower, well inside the 2-point pause limit.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="res-grid">
+          <div class="stack">
+            <div class="card">
+              <div class="card-h"><div style="flex:1"><h2>COD return rate by week</h2></div><div class="chart-legend"><span><i style="background:var(--primary)"></i>Agent</span><span><i style="background:var(--border-strong)"></i>Old settings</span></div></div>
+              <div class="card-b"><svg viewBox="0 0 560 230" role="img" aria-label="Weekly COD return rate. Agent falls from 26.0% to 21.4%. Old settings stay near 28%." id="chart" style="width:100%;height:auto"></svg></div>
+            </div>
+            <div class="card">
+              <div class="card-h"><div><h2>What the agent learned</h2><p>From delivery outcomes on Rangreza's own orders.</p></div></div>
+              <div class="learn">
+                <div class="item"><div><b>₹20 converts repeat UPI payers almost as well as ₹40</b><p>52% took ₹20 vs 55% at ₹40. The default for these buyers is now ₹20, saving about ₹1,800 a week.</p></div><span class="badge b-pos">Applied</span></div>
+                <div class="item"><div><b>Partial COD beats a discount for first orders in smaller towns</b><p>Returns were 9% with a ₹99 advance vs 14% with a prepaid discount.</p></div><span class="badge b-pos">Applied</span></div>
+                <div class="item"><div><b>Pincode 302012 should move to partial COD</b><p>Returns rose from 26% to 41% in 14 days.</p></div><span class="badge b-notice" id="learn3">Waiting for approval</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="stack">
+            <div class="card">
+              <div class="card-h"><div><h2>Control</h2><p>Pausing sends every COD order back to your old settings instantly.</p></div></div>
+              <div class="card-b">
+                <button class="btn btn-danger" id="pauseBtn" style="width:100%;justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>Pause agent</button>
+                <div class="kv" style="margin-top:12px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2 18a2 2 0 001.7 3h16.6a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg><div class="small" style="line-height:18px"><b>Auto-pause rule</b><br><span class="muted">Conversion gap today: 0.1 points. Limit: 2 points.</span></div></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-h"><h2>Activity log</h2></div>
+              <div class="card-b log" id="log">
+                <div><time>09:14</time><span>Neha approved partial COD for pincode 302012</span></div>
+                <div><time>Mon</time><span>Default discount for repeat UPI payers lowered from ₹40 to ₹20</span></div>
+                <div><time>Sun</time><span>Order #RZ-47390: Neha overrode "prepaid only" with "allow COD". Saved as feedback.</span></div>
+                <div><time>Sat</time><span>Daily discount cap reached at 21:40. Remaining orders used your current settings.</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="foot-note">Prototype built for the Razorpay AI x PM Build Challenge. All merchant, order and outcome data is synthetic. Return-risk scores stand in for the output of Razorpay's COD risk model; levers are existing Magic Checkout settings.</p>
+      </section>
+    </div>
+    </div>
+  </div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="Order decision details" aria-hidden="true"></aside>
+
+<div class="demo">
+  <button class="btn btn-secondary" id="prevBtn">Back</button>
+  <button class="btn btn-primary" id="nextBtn">Next</button>
+</div>
+<div class="toast" id="toast" role="status"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-10"/></svg><span id="toastText"></span></div>
+
+<script>
+(function(){
+  /* ---------------- helpers ---------------- */
+  const $ = (s, r=document) => r.querySelector(s);
+  const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+  const inr = n => '₹' + Math.round(n).toLocaleString('en-IN');
+  let toastTimer;
+  function toast(msg){
+    $('#toastText').textContent = msg;
+    $('#toast').classList.add('on');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>$('#toast').classList.remove('on'), 2800);
+  }
+
+  /* ---------------- navigation ---------------- */
+  let screen = 0;
+  const visited = {};
+  function go(i){
+    screen = Math.max(0, Math.min(3, i));
+    $$('.screen').forEach(s => s.classList.toggle('on', +s.dataset.screen === screen));
+    $$('.steps button').forEach(b => { const on = +b.dataset.go === screen; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
+    $('#prevBtn').disabled = screen === 0;
+    $('#nextBtn').textContent = screen === 3 ? 'Back to start' : 'Next';
+    $('#scroll').scrollTop = 0;
+    closeDrawer();
+    if (screen === 1 && !visited[1]) { visited[1] = true; setTimeout(addLiveOrder, 1800); }
+    if (screen === 2 && !visited[2]) { visited[2] = true; startChat(); }
+  }
+  $$('.steps button').forEach(b => b.addEventListener('click', () => go(+b.dataset.go)));
+  $('#prevBtn').addEventListener('click', () => go(screen - 1));
+  $('#nextBtn').addEventListener('click', () => go(screen === 3 ? 0 : screen + 1));
+  document.addEventListener('keydown', e => {
+    if (e.target.matches('textarea,input,select')) return;
+    if (e.key === 'ArrowRight') go(screen + 1);
+    if (e.key === 'ArrowLeft') go(screen - 1);
+    if (e.key === 'Escape') closeDrawer();
+  });
+
+  /* ---------------- screen 1 ---------------- */
+  let rulesReady = false;
+  $('#agentToggle').addEventListener('change', e => {
+    const on = e.target.checked;
+    $('#reveal').hidden = !on;
+    $('#toggleSub').textContent = on
+      ? 'On. Each COD order gets its own decision, within your rules.'
+      : 'Off. Your current settings apply the same way to every order.';
+    if (on) setTimeout(()=>$('#reveal').scrollIntoView({behavior:'smooth', block:'start'}), 60);
+  });
+  $('#parseBtn').addEventListener('click', () => {
+    const box = $('#rules');
+    box.innerHTML = '<div class="shimmer"></div><div class="shimmer" style="width:80%"></div><div class="shimmer" style="width:90%"></div>';
+    $('#parseBtn').disabled = true;
+    setTimeout(() => {
+      const tick = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-10"/></svg>';
+      const rules = [
+        ['Maximum discount per order', '₹40'],
+        ['Daily discount budget', '₹3,000'],
+        ['Never stop COD for buyers with delivered orders', '2 or more'],
+        ['WhatsApp messages per order', 'At most 1'],
+        ['Hold the parcel if there is no confirmation after', '12 hours'],
+      ];
+      box.innerHTML = rules.map((r,i) => `<div class="rule" style="animation-delay:${i*70}ms">${tick}<span>${r[0]}</span><span class="val">${r[1]}</span></div>`).join('') +
+        `<div class="warn" style="animation-delay:380ms"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg><span class="small" style="line-height:18px">Your current prepaid discount is <b>₹50</b>, above your ₹40 limit. The agent will cap it at ₹40 and test lower amounts.</span></div>`;
+      $('#parseBtn').disabled = false;
+      $('#parseBtn').lastChild.textContent = 'Update rules';
+      rulesReady = true;
+      $('#activateBtn').disabled = false;
+    }, 1100);
+  });
+  $$('.seg button').forEach(b => b.addEventListener('click', () => {
+    $$('.seg button').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-checked', x === b); });
+  }));
+  $('#activateBtn').addEventListener('click', () => {
+    toast('Agent activated. 10% of COD orders stay on your current settings.');
+    setTimeout(() => go(1), 900);
+  });
+
+  /* ---------------- decision model ---------------- */
+  // Synthetic, transparent model. r = return risk (Vulcan COD score), c = chance buyer takes a ₹40 prepaid discount.
+  const RTO = 200, MARGIN = 0.45, PREPAID_RTO = 0.06, PARTIAL_DROP = 0.18, BLOCK_SWITCH = 0.45, MSG_MIN_GAIN = 15, MAX_DISC = 40;
+  function allowEM(M, r){ return (1-r)*M - RTO*r; }
+  // Diminishing returns: bigger discounts help less and less, and nothing above ₹40.
+  function takeRate(c40, d){ return c40 * Math.pow(Math.min(d,40)/40, 0.15); }
+  function evaluate(o){
+    const M = o.cart * MARGIN, r = o.risk;
+    const opts = {};
+    opts.allow = {name:'Allow COD', em: allowEM(M, r)};
+    const rc = r*0.75;
+    opts.confirm = {name:'WhatsApp check', em: (1-rc)*M - RTO*rc - 1};
+    let best = null;
+    [20,30,40].forEach(d => {
+      const c = takeRate(o.c40, d);
+      const em = c*((1-PREPAID_RTO)*(M-d) - PREPAID_RTO*RTO) + (1-c)*opts.allow.em;
+      if (!best || em > best.em) best = {d, c, em};
+    });
+    opts.discount = {name:`Prepaid ₹${best.d} off`, em: best.em, d: best.d, c: best.c};
+    const rp = r*0.5;
+    opts.partial = {name:'Partial COD ₹99', em: (1-PARTIAL_DROP)*((1-rp)*M - RTO*rp)};
+    opts.block = {name:'Prepaid only', em: BLOCK_SWITCH*((1-PREPAID_RTO)*M - PREPAID_RTO*RTO)};
+    // guardrails
+    if (o.delivered >= 2) opts.block.na = 'Not allowed: buyer has ' + o.delivered + ' delivered orders';
+    if (opts.confirm.em - opts.allow.em < MSG_MIN_GAIN) opts.confirm.skip = 'Gain under ₹15, message saved for riskier orders';
+    let choice = null;
+    Object.entries(opts).forEach(([k,v]) => { if (v.na || v.skip) return; if (!choice || v.em > opts[choice].em) choice = k; });
+    // current static settings: risk > 40% block, 15–40% ₹50 prepaid link to all, else allow
+    let stat;
+    if (r > 0.40) stat = {k:'block', name:'Prepaid only', em: opts.block.em};
+    else if (r > 0.15) { const c = takeRate(o.c40, 50); stat = {k:'disc50', name:'Prepaid ₹50 off', em: c*((1-PREPAID_RTO)*(M-50) - PREPAID_RTO*RTO) + (1-c)*opts.allow.em}; }
+    else stat = {k:'allow', name:'Allow COD', em: opts.allow.em};
+    return {opts, choice, stat, M};
+  }
+
+  const orders = [
+    {id:'RZ-48213', name:'Priya S.', pin:'302012', city:'Jaipur', cart:1450, risk:.47, c40:.30, delivered:0, upi:'2 of 9', first:true, pinRate:'41%', status:['notice','Partial COD shown']},
+    {id:'RZ-48212', name:'Arjun M.', pin:'110092', city:'Delhi', cart:899, risk:.06, c40:.40, delivered:1, upi:'5 of 7', first:false, pinRate:'9%', status:['gray','COD allowed']},
+    {id:'RZ-48211', name:'Fatima K.', pin:'226003', city:'Lucknow', cart:1280, risk:.30, c40:.62, delivered:0, upi:'8 of 9', first:true, pinRate:'24%', status:['pos','Converted to prepaid']},
+    {id:'RZ-48210', name:'Rohit V.', pin:'841301', city:'Chapra', cart:2100, risk:.82, c40:.15, delivered:0, upi:'0 of 3', first:true, pinRate:'47%', status:['gray','Prepaid only shown']},
+    {id:'RZ-48209', name:'Sunita D.', pin:'452001', city:'Indore', cart:1150, risk:.24, c40:.22, delivered:0, upi:'1 of 6', first:true, pinRate:'21%', status:['pos','Confirmed, address fixed'], reply:true},
+    {id:'RZ-48208', name:'Kiran P.', pin:'560034', city:'Bengaluru', cart:1600, risk:.71, c40:.20, delivered:3, upi:'3 of 11', first:false, pinRate:'12%', status:['notice','Partial COD shown']},
+    {id:'RZ-48207', name:'Meera J.', pin:'400070', city:'Mumbai', cart:780, risk:.12, c40:.55, delivered:0, upi:'6 of 8', first:true, pinRate:'14%', status:['primary','WhatsApp sent']},
+    {id:'RZ-48206', name:'Vikram T.', pin:'302019', city:'Jaipur', cart:1320, risk:.28, c40:.50, delivered:0, upi:'4 of 7', first:true, pinRate:'19%', status:['gray','Old settings applied'], holdout:true},
+  ];
+  const liveOrder = {id:'RZ-48214', name:'Ananya R.', pin:'226010', city:'Lucknow', cart:1890, risk:.33, c40:.66, delivered:0, upi:'7 of 8', first:true, pinRate:'23%', status:['primary','Discount link sent'], fresh:true};
+
+  function riskColor(r){ return r > .4 ? 'var(--neg)' : r > .2 ? 'var(--notice)' : 'var(--pos)'; }
+  function choiceBadge(k){ return {allow:'b-gray', confirm:'b-primary', discount:'b-pos', partial:'b-notice', block:'b-neg'}[k] || 'b-gray'; }
+
+  function renderRows(){
+    $('#orderRows').innerHTML = orders.map((o,i) => {
+      const ev = evaluate(o);
+      const ch = o.holdout ? {name: ev.stat.name} : ev.opts[ev.choice];
+      const gain = o.holdout ? null : ev.opts[ev.choice].em - ev.stat.em;
+      return `<tr data-i="${i}" class="${o.fresh?'fresh':''}" tabindex="0">
+        <td><span class="id">#${o.id}</span><span class="s2">${o.name}${o.fresh?' · just now':''}</span></td>
+        <td>${o.pin}<span class="s2">${o.city}</span></td>
+        <td>${inr(o.cart)}</td>
+        <td><span class="risk"><span class="meter"><i style="width:${Math.round(o.risk*100)}%;background:${riskColor(o.risk)}"></i></span>${Math.round(o.risk*100)}%</span></td>
+        <td>${o.holdout ? '<span class="badge b-gray">Comparison group</span><span class="s2">'+ch.name+'</span>' : `<span class="badge ${choiceBadge(ev.choice)}">${ch.name}</span>`}</td>
+        <td><span class="badge b-${o.status[0]}">${o.status[1]}</span></td>
+        <td>${gain === null ? '<span class="gain zero">Not handled by agent</span>' : `<span class="gain ${Math.abs(gain)<1?'zero':''}">${gain>=1?'+':''}${Math.abs(gain)<1?'Same as before':inr(gain)}</span>`}</td>
+      </tr>`;
+    }).join('');
+    $$('#orderRows tr').forEach(tr => {
+      tr.addEventListener('click', () => openDrawer(+tr.dataset.i));
+      tr.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDrawer(+tr.dataset.i); } });
+    });
+  }
+  function addLiveOrder(){
+    if (orders.includes(liveOrder)) return;
+    orders.forEach(o => o.fresh = false);
+    orders.unshift(liveOrder);
+    $('#kOrders').textContent = '105';
+    renderRows();
+  }
+  renderRows();
+
+  /* ---------------- drawer ---------------- */
+  function why(o, ev){
+    const k = ev.choice, opts = ev.opts;
+    if (o.delivered >= 2 && k === 'partial') return `Return risk is high, but ${o.name.split(' ')[0]} has ${o.delivered} delivered orders, so your rules don't allow stopping COD. A ₹99 advance keeps the sale and halves the chance of a return.`;
+    if (k === 'partial') return `High return risk, but most of these buyers still pay a ₹99 advance. That keeps the sale and halves the chance of a return. Showing prepaid only would lose more buyers than it saves.`;
+    if (k === 'discount') return `This buyer usually pays by UPI elsewhere on Razorpay (${o.upi} recent payments), so a ₹${opts.discount.d} discount is likely to move them to prepaid. That is cheaper than your ₹50 default.`;
+    if (k === 'block') return `Very high return risk on a first order. Offering only prepaid protects ${inr(RTO)} in return costs. A ₹99 advance would still lose money on this order.`;
+    if (k === 'confirm') return `Medium risk. A WhatsApp check catches wrong addresses and fake orders for about ₹1, which beats spending ₹50 on a discount this buyer is unlikely to take.`;
+    return `Low return risk. No action needed, so no discount or WhatsApp message is spent on this order.`;
+  }
+  function openDrawer(i){
+    const o = orders[i], ev = evaluate(o);
+    $$('#orderRows tr').forEach(tr => tr.classList.toggle('sel', +tr.dataset.i === i));
+    const list = Object.entries(ev.opts);
+    const maxEM = Math.max(...list.map(([,v]) => v.em));
+    const optsHTML = list.map(([k,v]) => {
+      const best = !o.holdout && k === ev.choice;
+      const note = v.na || v.skip;
+      return `<div class="opt ${best?'best':''} ${note?'na':''}">
+        <span class="name">${v.name}</span>
+        <span class="track"><i style="width:${Math.max(4, v.em/maxEM*100)}%"></i></span>
+        <span class="amt">${inr(v.em)}</span>
+        ${note?`<span class="small muted" style="grid-column:1/-1;margin-top:-2px">${note}</span>`:''}
+      </div>`;
+    }).join('');
+    const gain = ev.opts[ev.choice].em - ev.stat.em;
+    const replyHTML = o.reply ? `<div><div class="sectlabel">Customer reply</div><div class="reply"><div class="msg"><div>haan bhej do. but gali no. 4 likhna, purana address galat hai</div></div><div class="parsed"><div class="row"><span class="badge b-pos">Order confirmed</span><span class="badge b-primary">Address updated</span></div><span class="muted">Added "Gali no. 4" to the shipping address and released the parcel for dispatch.</span></div></div></div>` : '';
+    $('#drawer').innerHTML = `
+      <div class="dr-h"><div><h2>#${o.id}</h2><div class="muted small" style="margin-top:2px">${o.name}, ${o.city} ${o.pin}, ${inr(o.cart)} cart</div></div><button class="x" aria-label="Close" id="closeDr"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+      <div class="dr-b">
+        ${o.holdout ? `<div class="why"><b>In the comparison group</b>This order followed your old settings (${ev.stat.name}) so the agent's impact can be measured fairly.</div>` : `<div class="why"><b>Why ${ev.opts[ev.choice].name.toLowerCase()}</b>${why(o, ev)}</div>`}
+        <div><div class="sectlabel">Signals used</div><div class="sig">
+          <span>Return risk (Razorpay COD model)</span><b style="color:${riskColor(o.risk)}">${Math.round(o.risk*100)}%</b>
+          <span>Recent payments by UPI on Razorpay</span><b>${o.upi}</b>
+          <span>Delivered orders with this brand</span><b>${o.delivered}</b>
+          <span>Return rate, this pincode (30 days)</span><b>${o.pinRate}</b>
+        </div></div>
+        <div><div class="sectlabel">Options compared <span class="muted small" style="font-weight:400">Expected profit on this order</span></div><div style="display:grid;gap:2px">${optsHTML}</div></div>
+        ${o.holdout ? '' : `<div class="sig" style="padding:12px;border:1px solid var(--border);border-radius:10px"><span>Your old settings would have chosen</span><b>${ev.stat.name}</b><span>Expected gain from the agent</span><b style="color:var(--pos)">${Math.abs(gain)<1?'None':'+'+inr(gain)}</b></div>`}
+        ${replyHTML}
+        ${o.holdout ? '' : `<div><label class="sectlabel" for="ovr" style="display:block">Override this decision</label><div class="row"><select id="ovr">${list.filter(([,v])=>!v.na).map(([k,v])=>`<option ${k===ev.choice?'selected':''}>${v.name}</option>`).join('')}</select><button class="btn btn-secondary" id="ovrBtn">Apply</button></div><p class="small muted" style="margin:6px 0 0">Overrides are saved as feedback. The agent learns from them.</p></div>`}
+      </div>`;
+    $('#drawer').classList.add('on'); $('#drawer').setAttribute('aria-hidden','false');
+    $('#scrim').classList.add('on');
+    $('#closeDr').addEventListener('click', closeDrawer);
+    const ob = $('#ovrBtn'); if (ob) ob.addEventListener('click', () => { toast('Override applied. Saved as feedback for the agent.'); closeDrawer(); });
+    setTimeout(()=>$('#closeDr').focus(), 50);
+  }
+  function closeDrawer(){
+    $('#drawer').classList.remove('on'); $('#drawer').setAttribute('aria-hidden','true');
+    $('#scrim').classList.remove('on');
+    $$('#orderRows tr').forEach(tr => tr.classList.remove('sel'));
+  }
+  $('#scrim').addEventListener('click', closeDrawer);
+
+  /* ---------------- screen 3: chat ---------------- */
+  const chat = $('#chat'), chips = $('#chips');
+  let chatTimers = [];
+  const now = () => '9:0' + Math.min(9, chat.children.length) + ' am';
+  function later(fn, ms){ chatTimers.push(setTimeout(fn, ms)); }
+  function scrollChat(){ chat.scrollTop = chat.scrollHeight; }
+  function typing(ms, then){
+    const t = document.createElement('div'); t.className = 'typing'; t.innerHTML = '<i></i><i></i><i></i>';
+    chat.appendChild(t); scrollChat();
+    later(() => { t.remove(); then(); }, ms);
+  }
+  function bubble(html, who='in'){
+    const b = document.createElement('div'); b.className = 'bub ' + who;
+    b.innerHTML = html + `<span class="t">${now()}${who==='out'?' ✓✓':''}</span>`;
+    chat.appendChild(b); scrollChat(); return b;
+  }
+  function setChips(list){
+    chips.innerHTML = '';
+    list.forEach(([label, fn]) => { const c = document.createElement('button'); c.textContent = label; c.addEventListener('click', fn); chips.appendChild(c); });
+  }
+  function lightStep(n, done){
+    $$('#tl li').forEach(li => {
+      const s = +li.dataset.step;
+      li.classList.toggle('lit', s <= n);
+      li.classList.toggle('done', done ? s <= n : s < n);
+    });
+  }
+  function startChat(){
+    chatTimers.forEach(clearTimeout); chatTimers = [];
+    chat.innerHTML = '<div class="daytag">Today</div>'; chips.innerHTML = '';
+    lightStep(0);
+    typing(900, () => {
+      bubble(`Good morning Neha. Here is yesterday's COD summary for Rangreza:
+        <div class="digest">
+          <span>COD orders</span><b>104</b>
+          <span>Moved to prepaid</span><b>19 of 31</b>
+          <span>Discounts spent</span><b>₹570 of ₹3,000</b>
+          <span>Partial COD</span><b>14</b>
+          <span>Prepaid only</span><b>6</b>
+          <span>Held, no confirmation</span><b>4</b>
+          <span>Returns avoided (est.)</span><b>21, about ₹4,200</b>
+        </div>`);
+      lightStep(1);
+      later(() => typing(1300, proposal), 900);
+    });
+  }
+  function proposal(){
+    lightStep(2);
+    const b = bubble(`One change needs your yes.<br><br>Returns from pincode <b>302012</b> rose from 26% to <b>41%</b> in the last 14 days (38 orders).<br><br>I suggest moving it to <b>partial COD with a ₹99 advance</b>. Estimated gain: <b>₹2,300 a week</b>.
+      <div class="qr"><button data-a="approve">Approve</button><button data-a="edit">Change the amount</button><button data-a="ignore">Ignore</button></div>`);
+    later(() => lightStep(3), 600);
+    $$('button', b).forEach(btn => btn.addEventListener('click', () => {
+      $$('button', b).forEach(x => x.disabled = true);
+      const a = btn.dataset.a;
+      if (a === 'approve') approve('₹99');
+      if (a === 'edit') { bubble('Change the amount', 'out'); typing(800, () => { const e = bubble(`Sure. Pick the advance for 302012:<div class="qr"><button>₹149</button><button>₹199</button></div>`); $$('button', e).forEach(x => x.addEventListener('click', () => { $$('button', e).forEach(y=>y.disabled=true); approve(x.textContent, true); })); }); }
+      if (a === 'ignore') { bubble('Ignore', 'out'); typing(700, () => { bubble(`Okay. 302012 stays on your current settings. I'll flag it again if returns keep rising.`); setChips(baseChips()); }); }
+    }));
+  }
+  function approve(amount, edited){
+    bubble(edited ? amount : 'Approve', 'out');
+    typing(800, () => {
+      const v = bubble(`Please confirm it's you.<div class="verify"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M7 11V8a5 5 0 0110 0v3"/><rect x="5" y="11" width="14" height="10" rx="2"/></svg><div style="flex:1"><b style="font-size:13px">Verify with Razorpay</b><div class="small muted">Secure link, opens and closes in one tap</div></div></div><div class="qr"><button>Tap to verify</button></div>`);
+      $('button', v).addEventListener('click', e => {
+        e.target.disabled = true; e.target.textContent = 'Verified';
+        typing(900, () => {
+          bubble(`Done. Pincode 302012 now gets <b>partial COD with a ${amount} advance</b>. It's saved in your activity log. I'll report the result next Monday.`);
+          lightStep(4, true);
+          const l = $('#learn3'); l.className = 'badge b-pos'; l.textContent = 'Applied';
+          setChips(baseChips());
+        });
+      });
+    });
+  }
+  function baseChips(){
+    return [
+      ['Why this pincode?', () => { bubble('Why this pincode?', 'out'); typing(900, () => bubble(`Most of the new returns are first-time buyers paying ₹1,200+ in cash, and couriers marked 11 of them "customer unreachable". A ₹99 advance filters out orders that are unlikely to be accepted, without blocking genuine buyers.`)); }],
+      ['Pause the agent', () => { bubble('Pause the agent', 'out'); typing(800, () => { bubble(`Paused. Every COD order now follows your previous settings. Reply "resume" any time.`); setPaused(true); setChips([['Resume', () => { bubble('Resume', 'out'); typing(700, () => { bubble('Resumed. The agent is handling COD orders again.'); setPaused(false); setChips(baseChips()); }); }]]); }); }],
+    ];
+  }
+  $('#replayChat').addEventListener('click', startChat);
+
+  /* ---------------- pause state ---------------- */
+  function setPaused(p){
+    document.body.classList.toggle('paused', p);
+    const s = $('#agentStatus');
+    s.className = 'badge ' + (p ? 'b-notice' : 'b-pos');
+    s.innerHTML = '<span class="dot"></span>' + (p ? 'Agent paused' : 'Agent running');
+    $('#agentStatusSub').textContent = p ? 'All COD orders follow the previous settings.' : 'Neha can reply "pause" at any time to switch it off.';
+    $('#pauseBtn').innerHTML = p
+      ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5l12 7-12 7z"/></svg>Resume agent'
+      : '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>Pause agent';
+    $('#pauseBtn').className = 'btn ' + (p ? 'btn-primary' : 'btn-danger');
+  }
+  $('#pauseBtn').addEventListener('click', () => {
+    const p = !document.body.classList.contains('paused');
+    setPaused(p);
+    const log = $('#log'); const d = document.createElement('div');
+    d.innerHTML = `<time>Now</time><span>Neha ${p ? 'paused' : 'resumed'} the agent from the dashboard</span>`;
+    log.prepend(d);
+    toast(p ? 'Agent paused. Orders now follow your previous settings.' : 'Agent resumed.');
+  });
+  $('[data-resume]').addEventListener('click', () => { setPaused(false); toast('Agent resumed.'); });
+
+  /* ---------------- chart ---------------- */
+  (function chart(){
+    const svg = $('#chart');
+    const agent = [26.0, 24.1, 22.6, 21.4], old = [28.3, 27.9, 28.4, 28.1];
+    const x = i => 70 + i*150, y = v => 200 - (v-16)/(32-16)*170;
+    let g = '';
+    [18,22,26,30].forEach(v => { g += `<line x1="56" x2="540" y1="${y(v)}" y2="${y(v)}" stroke="var(--border)" stroke-width="1"/><text x="46" y="${y(v)+4}" text-anchor="end" font-size="11" fill="var(--text-muted)" font-family="Inter,system-ui,sans-serif">${v}%</text>`; });
+    ['Week 1','Week 2','Week 3','Week 4'].forEach((w,i) => g += `<text x="${x(i)}" y="222" text-anchor="middle" font-size="11" fill="var(--text-muted)" font-family="Inter,system-ui,sans-serif">${w}</text>`);
+    const path = arr => arr.map((v,i) => (i?'L':'M') + x(i) + ' ' + y(v)).join(' ');
+    g += `<path d="${path(old)}" fill="none" stroke="var(--border-strong)" stroke-width="2.5" stroke-dasharray="6 5" stroke-linecap="round"/>`;
+    g += `<path d="${path(agent)}" fill="none" stroke="var(--primary)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
+    agent.forEach((v,i) => g += `<circle cx="${x(i)}" cy="${y(v)}" r="4.5" fill="var(--surface)" stroke="var(--primary)" stroke-width="2.5"/>`);
+    g += `<text x="${x(3)}" y="${y(21.4)+22}" text-anchor="middle" font-size="12" font-weight="600" fill="var(--primary)" font-family="Inter,system-ui,sans-serif">21.4%</text>`;
+    g += `<text x="${x(3)}" y="${y(28.1)-10}" text-anchor="middle" font-size="12" font-weight="600" fill="var(--text-muted)" font-family="Inter,system-ui,sans-serif">28.1%</text>`;
+    svg.innerHTML = g;
+  })();
+
+  go(0);
+})();
+</script>
+</body>
+</html>
